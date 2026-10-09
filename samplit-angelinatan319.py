@@ -1,6 +1,8 @@
 import random
 import sys
 
+### hw_1b
+
 filename = sys.argv[1]
 
 with open(filename) as f:
