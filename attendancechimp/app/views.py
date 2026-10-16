@@ -46,7 +46,7 @@ def to_number(text):
 def sum_view(request):
     n1 = to_number(request.GET["n1"])
     n2 = to_number(request.GET["n2"])
-    return JsonResponse({"sum": n1 + n2})
+    return HttpResponse(f'<p>{json.dumps({"sum": n1 + n2})}</p>')
 
 # ---------------------------------------------------------------------------
 # HW4  — user creation
