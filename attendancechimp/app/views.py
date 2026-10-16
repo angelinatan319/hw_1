@@ -34,7 +34,7 @@ def index(request):
     return render(request, 'app/index.html', context)
 
 def time_view(request):
-    now = datetime.now(ZoneInfo("America/Chicago"))
+    now = datetime.now(CDT)
     return HttpResponse(now.strftime("%H:%M"), content_type="text/plain")
 
 def to_number(text):
