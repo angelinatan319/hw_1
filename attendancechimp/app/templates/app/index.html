@@ -1,20 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>AttendanceChimp</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
-        .bio { max-width: 600px; margin: 0 auto; }
-        .username { font-weight: bold; font-size: 1.2em; }
+        body {
+            text-align: center;
+            font-family: sans-serif;
+        }
     </style>
 </head>
 <body>
-<div class="bio">
     <h1>AttendanceChimp</h1>
-    <p>Electronic class attendance tracking application.</p>
-    <hr>
+    <p>AttendanceChimp is a simple app for tracking class attendance. Students check in, and instructors see who showed up.</p>
 
-</div>
+    {% if username %}
+        <p><b>{{ username }}</b></p>
+    {% else %}
+        <p>Not logged in.</p>
+    {% endif %}
+
+    <p>Current time: {{ current_time }}</p>
 </body>
 </html>

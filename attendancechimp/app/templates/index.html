@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AttendanceChimp</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <h1>AttendanceChimp</h1>
+    <p>AttendanceChimp is a simple app for tracking class attendance. Students check in, and instructors see who showed up.</p>
+
+    {% if username %}
+        <p><b>{{ username }}</b></p>
+    {% else %}
+        <p>Not logged in.</p>
+    {% endif %}
+
+    <p>Current time: {{ current_time }}</p>
+</body>
+</html>
