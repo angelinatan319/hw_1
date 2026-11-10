@@ -2,3 +2,6 @@ media/
 db.sqlite3
 migrations/
 __pycache__/
+*.backup
+migrations.backup/
+.DS_Store
