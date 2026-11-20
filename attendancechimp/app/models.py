@@ -22,10 +22,13 @@ from django.contrib.auth.models import User
 import logging
 import string
 import random
+from zoneinfo import ZoneInfo
 
 logger = logging.getLogger(__name__) # set up tracking, auditing, and debugging
                                                                # allows using logger.warning(), logger.error(), 
                                                                # logger.info(), etc. Better than print() for debuggin... 
+
+CHICAGO = ZoneInfo("America/Chicago")  # timestamps are stored in UTC; class times are Chicago time
 
 
 # ---------------------------------------------------------------------------
@@ -91,6 +94,7 @@ class Course(models.Model):
     Fields
     ------
     name         : course name, e.g. "DATA 136"
+    course       : unique course number, e.g. "DATA13600"
     instructor   : the InstructorProfile who teaches it
     meeting_days : letters for the days it meets, e.g. "MWF" or "TR"
                    (M, T, W, R = Thursday, F, S, U = Sunday)
@@ -100,6 +104,7 @@ class Course(models.Model):
     DAY_LETTERS = "MTWRFSU"  # position matches Python's date.weekday()
 
     name = models.CharField(max_length=200)
+    course = models.CharField(max_length=20, unique=True, null=True)  # e.g. "DATA13600"
     instructor = models.ForeignKey(InstructorProfile, on_delete=models.CASCADE,
                                    related_name="courses")
     meeting_days = models.CharField(max_length=7)
@@ -243,3 +248,36 @@ def record_upload(student, image, qr_identifier=None):
 def is_enrolled(student, course):
     """Return True if the student is enrolled in the course."""
     return Enrollment.objects.filter(student=student, course=course).exists()
+
+
+def is_instructor(user):
+    """Return True if this User is logged in and has an instructor profile."""
+    return user.is_authenticated and hasattr(user, "instructor_profile")
+
+
+def getUploadsForCourse(course):
+    """
+    Return a list of QRCodeUploads for the given course number that were made
+    on a day the course meets, between start_time and end_time (Chicago time).
+    Returns [] if no course has that number.
+    """
+    # 1. Does the course exist?
+    #    (match the course-number field, or the name if that's where it was saved)
+    c = Course.objects.filter(models.Q(course=course) | models.Q(name=course)).first()
+    if c is None:
+        return []
+
+    # 2. All uploads for this course: Upload -> Lecture -> Course
+    uploads = (QRCodeUpload.objects
+               .filter(lecture__course=c)
+               .select_related("student__user"))
+
+    # 3. Keep uploads made on a meeting day, during class time
+    valid = []
+    for u in uploads:
+        local = u.uploaded_at.astimezone(CHICAGO)  # convert UTC -> Chicago time
+        if c.meets_on(local) and c.start_time <= local.time() <= c.end_time:
+            valid.append(u)
+
+    # 4. Return only the valid uploads
+    return valid

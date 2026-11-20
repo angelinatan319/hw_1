@@ -20,7 +20,8 @@ import json
 import io
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
-from .models import InstructorProfile, StudentProfile, Course, Lecture, QRCodeUpload
+from .models import (InstructorProfile, StudentProfile, Course, Lecture, QRCodeUpload,
+                     getUploadsForCourse)
 
 
 def get_instructor(user):
@@ -254,5 +255,29 @@ def dumpUploads(request):
 # HW6  — getUploads
 # ---------------------------------------------------------------------------
 
+def getUploads(request):
+    """
+    GET /app/getUploads?course=DATA13600
+    Instructors only. Returns a JSON list of the valid uploads for that course.
+    """
+    # 1. Authorization first, instructors only
+    instructor = get_instructor(request.user)
+    if instructor is None:
+        return HttpResponse("Unauthorized", status=401)
 
+    # 2. Read the course number from the URL (?course=...)
+    course = request.GET.get("course")
+    if not course:
+        return JsonResponse({"error": "Missing course parameter"}, status=400)
+
+    # 3. Build the list of dictionaries from the valid uploads
+    data = []
+    for upload in getUploadsForCourse(course):
+        data.append({
+            "username": upload.student.user.username,
+            "upload_time": timezone.localtime(upload.uploaded_at).strftime("%Y-%m-%d %H:%M:%S"),
+        })
+
+    # 4. Return it as JSON (safe=False because it's a list, not a dict)
+    return JsonResponse(data, safe=False)
 
